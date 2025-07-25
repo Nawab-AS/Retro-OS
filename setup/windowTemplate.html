@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        body {
+            width: 0px;
+            height: 0px;
+            margin: 0px;
+            padding: 0px;
+        }   
+        .window {
+            background: #fff;
+            border: 2px solid #555;
+            border-width: 4px;
+            border-style: solid;
+            border-color: #ddd #000 #000 #ddd;
+            position: absolute;
+            min-width: 400px; max-width: 90vw;
+            min-height: 300px; max-height: 90vh;
+            width: 400px;
+            height: 300px;
+            top: 100px;
+            left: 100px;
+            box-sizing: border-box;
+            resize: both;
+            overflow: auto;
+            min-width: max(300px, min-content);
+        }
+        .window-header {
+            background: linear-gradient(90deg, #0000aa 0%, #56aac0 100%);
+            padding: 12px 16px;
+            border-bottom: 1px solid #555;
+            opacity: 0.9;
+            backdrop-filter: blur(4px);
+            margin: 1px;
+            cursor: move;
+        }
+
+        .window-header h2 {
+            margin: 0;
+            font-size: 16px;
+            color: #fff;
+            display: inline-block;
+        }
+
+        .window-header button {
+            float: right;
+            background: #dd2a2a;
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            font-weight: bolder;
+            opacity: 0.9;
+        }
+        .window-content {
+            padding: 0px;
+            height: calc(100% - 50px);
+            box-sizing: border-box;
+        }
+        .window iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="window" id="window">
+        <div class="window-header" id="windowHeader">
+            <img height="18" width="18">
+            <h2>Window</h2>
+            <button>X</button>
+        </div>
+        <div class="window-content">
+            <iframe frameborder="0"></iframe>
+        </div>
+    </div>
+    <script>
+        let searchParams = new URLSearchParams(window.location.search);
+        let windowName = searchParams.get('windowName');
+        let windowPath = searchParams.get('windowPath');
+        let iconPath = searchParams.get('iconPath') || '/icons/defaultWindow.png';
+
+
+        const iframe = document.querySelector('iframe');
+        iframe.src = '/windows/fileExplorer.html';
+        iframe.onload = function() {
+            let header = document.querySelector('.window-header h2');
+            header.textContent = (()=>{try{return iframe.contentWindow.document.title} catch {return 'Window'}})();
+        }
+
+        const icon = document.querySelector('img');
+        try {
+            icon.src = iconPath;
+        } catch (e) {
+            console.warn('Error setting icon, defaulting to /icons/defaultWindow.png');
+            icon.src = '/icons/defaultWindow.png';
+            console.warn(e);
+        }
+        // Draggable logic
+        const windowElement = document.getElementById('window');
+        const header = document.getElementById('windowHeader');
+        let offsetX = 0, offsetY = 0, isDragging = false;
+
+        windowElement
+        header.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            offsetX = e.clientX - windowElement.offsetLeft;
+            offsetY = e.clientY - windowElement.offsetTop;
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (isDragging) {
+                windowElement.style.left = (e.clientX - offsetX) + 'px';
+                windowElement.style.top = (e.clientY - offsetY) + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', function() {
+            isDragging = false;
+        });
+    </script>
+</body>
+</html>

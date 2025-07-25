@@ -1,0 +1,12 @@
+<directory name="user">
+    <directory name="pictures">
+        <image name="vacation.jpg"/>
+        <image name="family.png"/>
+    </directory>
+
+    <directory name="games">
+        <file name="Pong"/>
+        <file name="Space Invaders"/>
+        <file name="Hill Climb Racing"/>
+    </directory>
+</directory>

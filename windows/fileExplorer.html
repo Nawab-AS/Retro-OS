@@ -1,23 +1,238 @@
+<!-- Acknowledgement: Made with the help of AI -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Explorer</title>
+    <style>
+        body { 
+            font-family: 'Courier New', monospace; 
+            background: #00bcd4; /* cyan */
+            color: #000; 
+            margin: 0;
+            padding: 10px;
+            background-image: 
+                linear-gradient(45deg, #00bcd4 25%, transparent 25%), 
+                linear-gradient(-45deg, #00bcd4 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #0097a7 75%), 
+                linear-gradient(-45deg, transparent 75%, #0097a7 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+        
+        h1 {
+            background: #e0ffff;
+            color: #008b8b;
+            padding: 8px;
+            margin: 0 0 10px 0;
+            border: 2px outset #b2ebf2;
+            text-align: center;
+            font-size: 18px;
+            letter-spacing: 2px;
+            box-shadow: 0 2px 8px #0097a744;
+        }
+        
+        #explorer { 
+            background: #e0ffff;
+            border: 2px inset #b2ebf2;
+            padding: 12px;
+            color: #004d4d;
+            max-height: 420px;
+            overflow-y: auto;
+            box-shadow: 0 2px 12px #0097a744;
+        }
+        
+        ul { 
+            list-style: none; 
+            padding-left: 20px; 
+            margin: 0;
+        }
+        
+        li { 
+            cursor: pointer; 
+            padding: 2px 4px;
+            user-select: none;
+            border: 1px solid transparent;
+        }
+        
+        li:hover {
+            background: #00bcd4;
+            color: #0047d4;
+            border: 1px dotted #008b8b;
+        }
+        
+        .directory {
+            font-weight: bold;
+            color: #006064;
+        }
+        
+        .nested {
+            background: #b2ebf2;
+            border-left: 2px solid #00bcd4;
+            margin-left: 10px;
+        }
+        
+        .loading {
+            font-style: italic;
+            color: #008b8b;
+        }
+        
+        .error {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    <h1>hello world</h1>
-    <p>
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Delectus iste facilis ullam
-        recusandae nemo quisquam possimus incidunt, cumque sapiente, quasi enim aut. Dicta ex
-        ipsum quo non natus consequuntur alias illo quisquam omnis sint at animi libero eius
-        fugiat laborum facilis quod earum, provident reprehenderit quas? Quos doloribus quibusdam
-        autem itaque eaque, praesentium atque maiores architecto vero? Sit esse tempore sed porro
-        architecto autem facere ad earum explicabo. Aliquam, dicta placeat nisi officia rem iste
-        assumenda sapiente laudantium aspernatur, cupiditate voluptates fugit harum accusantium,
-        aliquid obcaecati laborum ipsam expedita sed minus ex dolores deleniti? Amet inventore
-        magni dignissimos aliquam. Laborum.
-    </p>
-    <div style="width: 300px; height: 100px; background: #eee;">hello</div>
+    <h1>File Explorer</h1>
+    <div id="explorer">Loading...</div>
+    <script>
+        // Load fileSystem.xml and parse it
+        function loadFileSystem() {
+            const explorer = document.getElementById('explorer');
+            explorer.innerHTML = '<div class="loading">Loading file system...</div>';
+            
+            fetch('/fileSystem.xml')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(str => (new window.DOMParser()).parseFromString(str, "text/xml"))
+                .then(xml => {
+                    // Check for XML parsing errors
+                    const parserError = xml.querySelector('parsererror');
+                    if (parserError) {
+                        throw new Error('XML parsing error');
+                    }
+                    
+                    const root = xml.documentElement;
+                    explorer.innerHTML = '';
+                    explorer.appendChild(renderNode(root, true));
+                })
+                .catch(error => {
+                    console.error('Error loading file system:', error);
+                    explorer.innerHTML = '<div class="error">Error loading file system: ' + error.message + '</div>';
+                });
+        }
+
+        function renderNode(node, isRoot = false) {
+            const ul = document.createElement('ul');
+            
+            // If this is the root, add its name as a header
+            if (isRoot && node.getAttribute('name')) {
+                const rootLi = document.createElement('li');
+                rootLi.textContent = node.getAttribute('name');
+                rootLi.className = 'directory expanded';
+                const rootUl = document.createElement('ul');
+                rootUl.className = 'nested';
+                
+                Array.from(node.children).forEach(child => {
+                    rootUl.appendChild(createNodeElement(child));
+                });
+                
+                rootLi.appendChild(rootUl);
+                ul.appendChild(rootLi);
+                return ul;
+            }
+            
+            Array.from(node.children).forEach(child => {
+                ul.appendChild(createNodeElement(child));
+            });
+            return ul;
+        }
+        
+        function createNodeElement(child) {
+            const li = document.createElement('li');
+            const name = child.getAttribute('name');
+            li.textContent = name;
+            
+            if (child.tagName === 'directory') {
+                li.className = 'directory';
+                li.onclick = function(e) {
+                    e.stopPropagation();
+                    toggleDirectory(li, child);
+                };
+            } else {
+                // Determine file type based on tag name or extension
+                if (child.tagName === 'image') {
+                    li.className = 'image';
+                } else if (child.tagName === 'file') {
+                    // Check if it's an executable (no extension typically means executable in this context)
+                    if (!name.includes('.')) {
+                        li.className = 'executable';
+                    } else {
+                        li.className = 'file';
+                    }
+                } else {
+                    li.className = 'file';
+                }
+                
+                // Add double-click to "open" files
+                li.ondblclick = function(e) {
+                    e.stopPropagation();
+                    openFile(name, li.className);
+                };
+            }
+            
+            return li;
+        }
+        
+        function toggleDirectory(li, node) {
+            const existingNested = li.querySelector('.nested');
+            
+            if (existingNested) {
+                // Directory is expanded, collapse it
+                li.removeChild(existingNested);
+                li.classList.remove('expanded');
+            } else {
+                // Directory is collapsed, expand it
+                if (node.children.length > 0) {
+                    const nestedUl = document.createElement('ul');
+                    nestedUl.className = 'nested';
+                    
+                    Array.from(node.children).forEach(child => {
+                        nestedUl.appendChild(createNodeElement(child));
+                    });
+                    
+                    li.appendChild(nestedUl);
+                    li.classList.add('expanded');
+                } else {
+                    // Empty directory
+                    const nestedUl = document.createElement('ul');
+                    nestedUl.className = 'nested';
+                    const emptyLi = document.createElement('li');
+                    emptyLi.textContent = '(empty)';
+                    emptyLi.style.fontStyle = 'italic';
+                    emptyLi.style.color = '#808080';
+                    nestedUl.appendChild(emptyLi);
+                    li.appendChild(nestedUl);
+                    li.classList.add('expanded');
+                }
+            }
+        }
+        
+        function openFile(fileName, fileType) {
+            let message = `Opening ${fileName}`;
+            
+            switch(fileType) {
+                case 'image':
+                    message = `🖼️ Opening image: ${fileName}`;
+                    break;
+                case 'executable':
+                    message = `⚙️ Running program: ${fileName}`;
+                    break;
+                default:
+                    message = `📄 Opening file: ${fileName}`;
+            }
+            
+            // For now, just show an alert. In a real OS, this would open the appropriate application
+            alert(message);
+        }
+        
+        // Load the file system when the page loads
+        window.addEventListener('load', loadFileSystem);
+    </script>
 </body>
 </html>

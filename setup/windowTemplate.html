@@ -1,32 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <style>
-        body {
+        body,
+        html {
             width: 0px;
             height: 0px;
             margin: 0px;
             padding: 0px;
-        }   
-        .window {
+            pointer-events: none;
+        }
+
+        #window {
             background: #fff;
             border: 2px solid #555;
             border-width: 4px;
             border-style: solid;
             border-color: #ddd #000 #000 #ddd;
             position: absolute;
-            min-width: 400px; max-width: 90vw;
-            min-height: 300px; max-height: 90vh;
+            min-width: 400px;
+            max-width: 90vw;
+            min-height: 300px;
+            max-height: 90vh;
             width: 400px;
             height: 300px;
-            top: 100px;
-            left: 100px;
             box-sizing: border-box;
             resize: both;
             overflow: auto;
             min-width: max(300px, min-content);
+            pointer-events: stroke;
         }
-        .window-header {
+
+        #window-header {
             background: linear-gradient(90deg, #0000aa 0%, #56aac0 100%);
             padding: 12px 16px;
             border-bottom: 1px solid #555;
@@ -36,14 +42,14 @@
             cursor: move;
         }
 
-        .window-header h2 {
+        #window-header h2 {
             margin: 0;
             font-size: 16px;
             color: #fff;
             display: inline-block;
         }
 
-        .window-header button {
+        #window-header button {
             float: right;
             background: #dd2a2a;
             border: none;
@@ -55,12 +61,14 @@
             font-weight: bolder;
             opacity: 0.9;
         }
-        .window-content {
+
+        #window-content {
             padding: 0px;
             height: calc(100% - 50px);
             box-sizing: border-box;
         }
-        .window iframe {
+
+        #window iframe {
             width: 100%;
             height: 100%;
             border: none;
@@ -68,31 +76,51 @@
         }
     </style>
 </head>
+
 <body>
-    <div class="window" id="window">
-        <div class="window-header" id="windowHeader">
+    <div id="window">
+        <div id="window-header">
             <img height="18" width="18">
-            <h2>Window</h2>
+            <h2>Loading...</h2>
             <button>X</button>
         </div>
-        <div class="window-content">
+        <div id="window-content">
             <iframe frameborder="0"></iframe>
         </div>
     </div>
-    <script>
+    <script defer>
         let searchParams = new URLSearchParams(window.location.search);
         let windowName = searchParams.get('windowName');
         let windowPath = searchParams.get('windowPath');
         let iconPath = searchParams.get('iconPath') || '/icons/defaultWindow.png';
+        let minWidth = searchParams.get('minWidth') || 400;
+        let minHeight = searchParams.get('minHeight') || 300;
+        let passThrough = '?';
+
+        searchParams.forEach((value, key) => {
+            if (key !== 'windowName' && key !== 'windowPath' && key !== 'iconPath' && key !== 'minWidth' && key !== 'minHeight') {
+                passThrough += `${key}=${encodeURIComponent(value)}&`;
+            }
+        });
 
 
         const iframe = document.querySelector('iframe');
-        iframe.src = '/windows/fileExplorer.html';
-        iframe.onload = function() {
-            let header = document.querySelector('.window-header h2');
-            header.textContent = (()=>{try{return iframe.contentWindow.document.title} catch {return 'Window'}})();
+        iframe.src = windowPath + passThrough;
+
+        // window name
+        iframe.onload = function () {
+            let header = document.querySelector("#window-header > h2");
+            if (typeof windowName != 'string') {
+                windowName = (() => { try { return iframe.contentWindow.document.title } catch { return 'Window' } })();
+            }
+            if (windowName == null || windowName.trim() === '') {
+                header.textContent = 'Window';
+            } else {
+                header.textContent = windowName;
+            }
         }
 
+        // icon
         const icon = document.querySelector('img');
         try {
             icon.src = iconPath;
@@ -101,28 +129,42 @@
             icon.src = '/icons/defaultWindow.png';
             console.warn(e);
         }
-        // Draggable logic
+
+        // Set minimum size
         const windowElement = document.getElementById('window');
-        const header = document.getElementById('windowHeader');
+        windowElement.style.minWidth = minWidth + 'px';
+        windowElement.style.minHeight = minHeight + 'px';
+        windowElement.style.width = minWidth + 'px';
+        windowElement.style.height = minHeight + 'px';
+
+        // Draggable logic
+        const header = document.getElementById('window-header');
         let offsetX = 0, offsetY = 0, isDragging = false;
 
-        windowElement
-        header.addEventListener('mousedown', function(e) {
+        // Mouse down event to start dragging
+        header.addEventListener('mousedown', function (e) {
             isDragging = true;
             offsetX = e.clientX - windowElement.offsetLeft;
             offsetY = e.clientY - windowElement.offsetTop;
         });
 
-        document.addEventListener('mousemove', function(e) {
+        // Mouse move event to drag the window
+        document.addEventListener('mousemove', function (e) {
             if (isDragging) {
+                // Update the window's position based on the mouse movement
                 windowElement.style.left = (e.clientX - offsetX) + 'px';
                 windowElement.style.top = (e.clientY - offsetY) + 'px';
             }
         });
 
-        document.addEventListener('mouseup', function() {
+        // Mouse up event to stop dragging
+        document.addEventListener('mouseup', function () {
             isDragging = false;
         });
+
+        // Remove the dragWindow('firstFrame') call
+        // It is unnecessary and causes the window to jump to the top-left corner
     </script>
 </body>
+
 </html>

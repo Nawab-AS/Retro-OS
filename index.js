@@ -80,16 +80,13 @@ function getIconForFolder(folderName) {
             return icons.audio;
         case 'videos':
             return icons.default; // Using default for videos since we don't have a video icon
-        case 'documents':
-            return icons.directory; // Using directory icon for documents
-        case 'games':
-            return icons.directory; // Using directory icon for games
         default:
             return icons.directory; // Default to directory icon for any other folders
     }
 }
 
 function openFileExplorer(path) {
+    console.log(path);
     if (!fileExplorerWindow || !document.body.contains(fileExplorerWindow)) {
         // Create new window if it doesn't exist or was closed
         fileExplorerWindow = windowManager.addWindow('./windows/fileExplorer.html', 'File Explorer', 500, 400, { path: path }, '/icons/recycleBin.png');
@@ -236,7 +233,7 @@ function setup() {
     }));
 
     startMenu.push(new Button(15, 600 - 42 - (40*2), 150, 30, 'File Explorer', () => {
-        openFileExplorer('/Retro');
+        openFileExplorer('/Retro/Pictures'); 
     }));
 
     windowManager = new WindowManager(document.getElementById('windows'));

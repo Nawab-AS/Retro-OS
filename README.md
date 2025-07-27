@@ -60,6 +60,13 @@ cd retro-OS
 
 ### File System
 
+
+To access files:
+1. Double-click any of the desktop folders to access their respective contents or open the file explorer from the start menu
+2. Navigate through directories using double-clicks
+3. Double-click files to open them in the viewer
+
+
 The file system supports various media types organized in folders:
 - 📁 Pictures: View images (.jpeg, .gif)
 - 🎵 Music: Play audio files (.wav, .mp3)
@@ -77,11 +84,6 @@ Retro/
 └── Videos/
     └── demo.mp4
 ```
-
-To access files:
-1. Double-click any of the desktop folders to access their respective contents
-2. Navigate through directories using double-clicks
-3. Double-click files to open them in their appropriate viewer
 
 ### Adding/Removing Files and Folders
 

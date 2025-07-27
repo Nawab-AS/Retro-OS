@@ -5,7 +5,7 @@ A nostalgic web-based operating system interface that recreates the classic desk
 
 ## Live Demo
 
-You can try out the live demo [here](https://nawab-as.github.io/retro-os).
+You can try out the live demo [here](https://nawab-as.github.io/Retro-OS).
 
 ## Description
 

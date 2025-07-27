@@ -20,20 +20,21 @@ class WindowManager {
     }
 
     addWindow(windowPath, windowName = null, minWidth = 400, minHeight = 300, params = {}, iconPath = null) {
-        if (!windowPath.startsWith('http://') && !windowPath.startsWith('https://')) {
-            windowPath = location.origin + '/windows' + (windowPath.startsWith('/') ? '' : '/') + windowPath;
-        }
-        // console.log(`Adding window: ${windowPath} with the title of '${windowName}', Icon: ${iconPath || 'default icon'}, min-width: ${minWidth}, min-height: ${minHeight}`);
+        // if (!windowPath.startsWith('http://') && !windowPath.startsWith('https://')) {
+        //     windowPath = location.origin + '/windows' + (windowPath.startsWith('/') ? '' : '/') + windowPath;
+        // }
 
+        console.log("."+windowPath);
         // Create a new window element with all parameters as query strings
         const windowElement = document.createElement('iframe');
         windowElement.id = 'window-' + (++this.windowCounter);
-        let src = '/setup/windowTemplate.html?windowPath=' + encodeURIComponent(windowPath) + '&minWidth=' + minWidth + '&minHeight=' + minHeight;
+        let src = './setup/windowTemplate.html?windowPath=.' + encodeURIComponent((windowPath)) + '&minWidth=' + minWidth + '&minHeight=' + minHeight;
         if (windowName) src += '&windowName=' + encodeURIComponent(windowName);
         if (iconPath) src += '&iconPath=' + encodeURIComponent(iconPath);
         for (const [key, value] of Object.entries(params)) {
             src += `&${key}=${encodeURIComponent(value)}`;
         }
+        
         windowElement.src = src;
 
         // set window size and center it
@@ -45,21 +46,6 @@ class WindowManager {
         windowElement.style.top = '50%';
         windowElement.style.left = '50%';
         windowElement.style.transform = 'translate(-50%, -50%)';
-
-        // Enable resizing for the iframe
-        windowElement.style.resize = 'both';
-        windowElement.style.overflow = 'auto';
-
-        // Adjust iframe content size dynamically on resize
-        windowElement.addEventListener('resize', () => {
-            const iframeDocument = windowElement.contentWindow.document;
-            const iframeWindow = iframeDocument.querySelector('#window');
-            if (iframeWindow) {
-                iframeWindow.style.width = windowElement.style.width;
-                iframeWindow.style.height = windowElement.style.height;
-            }
-        });
-
         // Append the new window element to the windows div
         this.windowsDiv.appendChild(windowElement);
         

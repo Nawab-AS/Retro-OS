@@ -92,7 +92,7 @@ function getIconForFolder(folderName) {
 function openFileExplorer(path) {
     if (!fileExplorerWindow || !document.body.contains(fileExplorerWindow)) {
         // Create new window if it doesn't exist or was closed
-        fileExplorerWindow = windowManager.addWindow('fileExplorer.html', 'File Explorer', 500, 400, { path: path }, '/icons/recycleBin.png');
+        fileExplorerWindow = windowManager.addWindow('./windows/fileExplorer.html', 'File Explorer', 500, 400, { path: path }, '/icons/recycleBin.png');
     } else {
         // First, update the iframe source back to fileExplorer.html if it's currently showing a file
         const windowTemplateDoc = fileExplorerWindow.contentDocument || fileExplorerWindow.contentWindow.document;
@@ -100,7 +100,7 @@ function openFileExplorer(path) {
         if (contentIframe) {
             if (!contentIframe.src.includes('fileExplorer.html')) {
                 // If we're in file viewer, switch back to explorer
-                contentIframe.src = `/windows/fileExplorer.html?path=${encodeURIComponent(path)}`;
+                contentIframe.src = `../windows/fileExplorer.html?path=${encodeURIComponent(path)}`;
                 // Update the window title
                 const titleH3 = windowTemplateDoc.querySelector('h3');
                 if (titleH3) {
@@ -125,7 +125,7 @@ function openFileExplorer(path) {
 function openFile(filePath, fileName) {
     if (!fileExplorerWindow || !document.body.contains(fileExplorerWindow)) {
         // Create window if it doesn't exist
-        fileExplorerWindow = windowManager.addWindow('file.html', `File Viewer - ${fileName}`, 500, 400, 
+        fileExplorerWindow = windowManager.addWindow('../windows/file.html', `File Viewer - ${fileName}`, 600, 500, 
             { filePath: filePath, fileName: fileName }, '/icons/defaultWindow.png');
     } else {
         // Replace the current window content with file viewer
@@ -137,11 +137,8 @@ function openFile(filePath, fileName) {
             filePath: filePath,
             fileName: fileName
         });
-        currentIframe.src = `/windows/file.html?${params.toString()}`;
-        
-        // Update window title
-        fileExplorerWindow.contentWindow.document.querySelector('h3').textContent = `File Viewer - ${fileName}`;
-        
+        currentIframe.src = `../windows/file.html?${params.toString()}`;
+                
         // Update window title in taskbar
         const taskbarWindow = taskbarWindows.find(w => w.element === fileExplorerWindow);
         if (taskbarWindow) {
@@ -165,7 +162,7 @@ function createDesktopIcons() {
     desktopIcons = [];
     
     // Fetch and parse the filesystem XML
-    fetch('/fileSystem.xml')
+    fetch('./fileSystem.xml')
         .then(response => response.text())
         .then(str => (new window.DOMParser()).parseFromString(str, "text/xml"))
         .then(xml => {

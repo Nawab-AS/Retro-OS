@@ -105,7 +105,7 @@
             const header = document.querySelector('h1');
             header.textContent = `File Explorer - ${targetPath}`;
             
-            fetch('/fileSystem.xml')
+            fetch('../fileSystem.xml')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);

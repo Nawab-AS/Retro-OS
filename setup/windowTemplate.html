@@ -81,7 +81,7 @@
         let searchParams = new URLSearchParams(window.location.search);
         let windowName = searchParams.get('windowName');
         let windowPath = searchParams.get('windowPath');
-        let iconPath = searchParams.get('iconPath') || '/icons/defaultWindow.png';
+        let iconPath = "../" + (searchParams.get('iconPath') || 'icons/defaultWindow.png');
         let width = searchParams.get('width') || 400;
         let height = searchParams.get('height') || 300;
         let passThrough = '?';
@@ -114,8 +114,8 @@
         try {
             icon.src = iconPath;
         } catch (e) {
-            console.warn('Error setting icon, defaulting to /icons/defaultWindow.png');
-            icon.src = '/icons/defaultWindow.png';
+            console.warn('Error setting icon, defaulting to ../icons/defaultWindow.png');
+            icon.src = '../icons/defaultWindow.png';
             console.warn(e);
         }
 

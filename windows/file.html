@@ -1,0 +1,246 @@
+<!-- Acknowledgement: Made with the help of AI -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>File Viewer</title>
+    <style>
+        body { 
+            font-family: 'Courier New', monospace; 
+            background: #00bcd4; /* cyan */
+            color: #000; 
+            margin: 0;
+            padding: 10px;
+            background-image: 
+                linear-gradient(45deg, #00bcd4 25%, transparent 25%), 
+                linear-gradient(-45deg, #00bcd4 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #0097a7 75%), 
+                linear-gradient(-45deg, transparent 75%, #0097a7 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+        
+        h1 {
+            background: #e0ffff;
+            color: #008b8b;
+            padding: 8px;
+            margin: 0 0 10px 0;
+            border: 2px outset #b2ebf2;
+            text-align: center;
+            font-size: 18px;
+            letter-spacing: 2px;
+            box-shadow: 0 2px 8px #0097a744;
+        }
+        
+        #content { 
+            background: #e0ffff;
+            border: 2px inset #b2ebf2;
+            padding: 12px;
+            color: #004d4d;
+            max-height: 420px;
+            overflow-y: auto;
+            box-shadow: 0 2px 12px #0097a744;
+        }
+        
+        .loading {
+            font-style: italic;
+            color: #008b8b;
+        }
+        
+        .error {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+        
+        .image-viewer {
+            text-align: center;
+        }
+        
+        .image-viewer img {
+            max-width: 100%;
+            max-height: 350px;
+            border: 2px solid #008b8b;
+        }
+        
+        .text-viewer {
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .video-viewer {
+            text-align: center;
+        }
+        
+        .video-viewer video {
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .unsupported {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #666;
+        }
+        
+        .back-button {
+            background: #008b8b;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        
+        .back-button:hover {
+            background: #006064;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="title">File Viewer</h1>
+    <button class="back-button" onclick="goBack()">← Back to Explorer</button>
+    <div id="content">Loading...</div>
+    
+    <script>
+        let currentPath = '';
+        let parentPath = '';
+        
+        function getFileExtension(filename) {
+            return filename.split('.').pop().toLowerCase();
+        }
+        
+        function getFileType(filename) {
+            const ext = getFileExtension(filename);
+            
+            // Image files
+            if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'bmp', 'webp'].includes(ext)) {
+                return 'image';
+            }
+            
+            // Text files
+            if (['txt', 'md', 'json', 'js', 'html', 'css', 'xml', 'csv'].includes(ext)) {
+                return 'text';
+            }
+            
+            // Video files
+            if (['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mpg'].includes(ext)) {
+                return 'video';
+            }
+            
+            return 'unknown';
+        }
+        
+        function loadFile(filePath, fileName) {
+            currentPath = filePath;
+            parentPath = filePath.substring(0, filePath.lastIndexOf('/'));
+            
+            const title = document.getElementById('title');
+            const content = document.getElementById('content');
+            
+            title.textContent = `File Viewer - ${fileName}`;
+            content.innerHTML = '<div class="loading">Loading file...</div>';
+            
+            const fileType = getFileType(fileName);
+            const fullPath = `/files${filePath}`;
+            
+            switch (fileType) {
+                case 'image':
+                    content.innerHTML = `
+                        <div class="image-viewer">
+                            <img src="${fullPath}" alt="${fileName}" 
+                                 onload="this.style.display='block'" 
+                                 onerror="showError('Failed to load image')" 
+                                 style="display:none" />
+                        </div>`;
+                    break;
+                    
+                case 'text':
+                    fetch(fullPath)
+                        .then(response => {
+                            if (!response.ok) throw new Error('File not found');
+                            return response.text();
+                        })
+                        .then(text => {
+                            content.innerHTML = `<div class="text-viewer">${escapeHtml(text)}</div>`;
+                        })
+                        .catch(error => showError('Failed to load text file: ' + error.message));
+                    break;
+                    
+
+                    
+                case 'video':
+                    content.innerHTML = `
+                        <div class="video-viewer">
+                            <p>🎬 Playing: ${fileName}</p>
+                            <video controls>
+                                <source src="${fullPath}" type="video/${getFileExtension(fileName)}">
+                                Your browser does not support the video element.
+                            </video>
+                        </div>`;
+                    break;
+                    
+                default:
+                    content.innerHTML = `
+                        <div class="unsupported">
+                            <p>📄 ${fileName}</p>
+                            <p>File type not supported for preview</p>
+                            <p><a href="${fullPath}" download="${fileName}">Download file</a></p>
+                        </div>`;
+            }
+        }
+        
+        function showError(message) {
+            const content = document.getElementById('content');
+            content.innerHTML = `<div class="error">${message}</div>`;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function goBack() {
+            console.log('Going back to explorer, parent path:', parentPath);
+            
+            // Send message to the main window through the window template
+            const message = { 
+                type: 'openFileExplorer', 
+                path: parentPath || '/Retro' 
+            };
+            
+            // In the window template structure:
+            // - this window is the content iframe
+            // - window.parent is the window template 
+            // - window.parent.parent is the main window
+            window.parent.parent.postMessage(message, '*');
+            console.log('Back message sent:', message);
+        }
+        
+        // Load file when page loads
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const filePath = urlParams.get('filePath');
+            const fileName = urlParams.get('fileName');
+            
+            if (filePath && fileName) {
+                loadFile(filePath, fileName);
+            } else {
+                showError('No file specified');
+            }
+        });
+        
+        // Listen for messages from parent window
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'loadFile') {
+                loadFile(event.data.filePath, event.data.fileName);
+            }
+        });
+    </script>
+</body>
+</html>

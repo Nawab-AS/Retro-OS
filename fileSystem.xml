@@ -1,29 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <directory name="Retro">
     <directory name="Pictures">
-        <image name="vacation.jpg"/>
-        <image name="family.png"/>
-        <image name="sunset.svg"/>
-        <image name="portrait.gif"/>
-    </directory>
-    
-    <directory name="Documents">
-        <file name="readme.txt"/>
-    </directory>
-    
-    <directory name="Games">
-        <file name="Space Invaders"/>
-        <file name="Hill Climb Racing"/>
+        <image name="vacation.jpeg"/>
+        <image name="hello.gif"/>
     </directory>
     
     <directory name="Music">
-        <file name="track01.wav"/>
-        <file name="ambient.mid"/>
-        <file name="song.mp3"/>
+        <file name="Mystery.wav"/>
+        <file name="Boop Bing Bop.wav"/>
     </directory>
-    
+
     <directory name="Videos">
-        <file name="demo.avi"/>
-        <file name="tutorial.mpg"/>
+        <file name="demo.mp4"/>
     </directory>
 </directory>

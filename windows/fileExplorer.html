@@ -61,6 +61,12 @@
             border: 1px dotted #008b8b;
         }
         
+        li.selected {
+            background: #008b8b;
+            color: white;
+            border: 1px solid white;
+        }
+        
         .directory {
             font-weight: bold;
             color: #006064;
@@ -88,9 +94,16 @@
     <div id="explorer">Loading...</div>
     <script>
         // Load fileSystem.xml and parse it
-        function loadFileSystem() {
+        let currentExplorerPath = '/Retro';
+        
+        function loadFileSystem(targetPath = '/Retro') {
+            currentExplorerPath = targetPath;
             const explorer = document.getElementById('explorer');
             explorer.innerHTML = '<div class="loading">Loading file system...</div>';
+            
+            // Update the header to show current path
+            const header = document.querySelector('h1');
+            header.textContent = `File Explorer - ${targetPath}`;
             
             fetch('/fileSystem.xml')
                 .then(response => {
@@ -109,7 +122,30 @@
                     
                     const root = xml.documentElement;
                     explorer.innerHTML = '';
-                    explorer.appendChild(renderNode(root, true));
+                    
+                    if (targetPath === '/Retro') {
+                        // Show root directory
+                        explorer.appendChild(renderNode(root, true));
+                    } else {
+                        // Navigate to specific folder
+                        const pathParts = targetPath.split('/').filter(part => part);
+                        let currentNode = root;
+                        
+                        // Find the target directory
+                        for (let i = 1; i < pathParts.length; i++) {
+                            const folderName = pathParts[i];
+                            const foundDir = Array.from(currentNode.children)
+                                .find(child => child.tagName === 'directory' && child.getAttribute('name') === folderName);
+                            if (foundDir) {
+                                currentNode = foundDir;
+                            }
+                        }
+                        
+                        // Show the contents of the target directory
+                        const targetFolderName = pathParts[pathParts.length - 1];
+                        explorer.innerHTML = `<h2 style="color: #006064; margin-bottom: 10px;">Contents of ${targetFolderName}:</h2>`;
+                        explorer.appendChild(renderNode(currentNode, false));
+                    }
                 })
                 .catch(error => {
                     console.error('Error loading file system:', error);
@@ -169,10 +205,15 @@
                     li.className = 'file';
                 }
                 
-                // Add double-click to "open" files
-                li.ondblclick = function(e) {
+                // Add click to "open" files
+                li.onclick = function(e) {
                     e.stopPropagation();
-                    openFile(name, li.className);
+                    // Highlight the clicked file
+                    const allFiles = document.querySelectorAll('li');
+                    allFiles.forEach(f => f.classList.remove('selected'));
+                    li.classList.add('selected');
+                    // Open the file
+                    openFile(name, li.className, currentExplorerPath);
                 };
             }
             
@@ -213,26 +254,44 @@
             }
         }
         
-        function openFile(fileName, fileType) {
-            let message = `Opening ${fileName}`;
+        function openFile(fileName, fileType, currentPath) {
+            console.log('Opening file:', fileName, 'Type:', fileType, 'Path:', currentPath);
             
-            switch(fileType) {
-                case 'image':
-                    message = `🖼️ Opening image: ${fileName}`;
-                    break;
-                case 'executable':
-                    message = `⚙️ Running program: ${fileName}`;
-                    break;
-                default:
-                    message = `📄 Opening file: ${fileName}`;
+            // Get the full file path
+            const filePath = currentPath ? `${currentPath}/${fileName}` : `/Retro/${fileName}`;
+            
+            // Send message to parent window (the main application)
+            // The message needs to go through the window template to the main window
+            const message = { 
+                type: 'openFile', 
+                filePath: filePath,
+                fileName: fileName 
+            };
+            
+            // In the window template structure, window.parent is the window template
+            // and window.parent.parent is the main window
+            try {
+                window.parent.parent.postMessage(message, '*');
+                console.log('Message sent to main window:', message);
+            } catch (e) {
+                console.error('Failed to send message:', e);
             }
-            
-            // For now, just show an alert. In a real OS, this would open the appropriate application
-            alert(message);
         }
         
         // Load the file system when the page loads
-        window.addEventListener('load', loadFileSystem);
+        window.addEventListener('load', () => {
+            // Get initial path from URL parameters if any
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialPath = urlParams.get('path') || '/Retro';
+            loadFileSystem(initialPath);
+        });
+
+        // Listen for messages from parent window
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'setPath') {
+                loadFileSystem(event.data.path);
+            }
+        });
     </script>
 </body>
 </html>

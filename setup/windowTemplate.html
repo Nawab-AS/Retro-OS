@@ -3,13 +3,14 @@
 
 <head>
     <style>
-        body,
-        html {
-            width: 0px;
-            height: 0px;
+        body {
+            width: 100vw;
+            height: 100vh;
             margin: 0px;
             padding: 0px;
-            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         #window {
@@ -18,28 +19,16 @@
             border-width: 4px;
             border-style: solid;
             border-color: #ddd #000 #000 #ddd;
-            position: absolute;
-            min-width: 400px;
-            max-width: 90vw;
-            min-height: 300px;
-            max-height: 90vh;
-            width: 400px;
-            height: 300px;
             box-sizing: border-box;
-            resize: both;
             overflow: auto;
-            min-width: max(300px, min-content);
-            pointer-events: stroke;
         }
 
         #window-header {
             background: linear-gradient(90deg, #0000aa 0%, #56aac0 100%);
             padding: 12px 16px;
             border-bottom: 1px solid #555;
-            opacity: 0.9;
-            backdrop-filter: blur(4px);
             margin: 1px;
-            cursor: move;
+            user-select: none;
         }
 
         #window-header h2 {
@@ -93,12 +82,12 @@
         let windowName = searchParams.get('windowName');
         let windowPath = searchParams.get('windowPath');
         let iconPath = searchParams.get('iconPath') || '/icons/defaultWindow.png';
-        let minWidth = searchParams.get('minWidth') || 400;
-        let minHeight = searchParams.get('minHeight') || 300;
+        let width = searchParams.get('width') || 400;
+        let height = searchParams.get('height') || 300;
         let passThrough = '?';
 
         searchParams.forEach((value, key) => {
-            if (key !== 'windowName' && key !== 'windowPath' && key !== 'iconPath' && key !== 'minWidth' && key !== 'minHeight') {
+            if (key !== 'windowName' && key !== 'windowPath' && key !== 'iconPath' && key !== 'width' && key !== 'height') {
                 passThrough += `${key}=${encodeURIComponent(value)}&`;
             }
         });
@@ -130,40 +119,17 @@
             console.warn(e);
         }
 
-        // Set minimum size
+        // Set size
         const windowElement = document.getElementById('window');
-        windowElement.style.minWidth = minWidth + 'px';
-        windowElement.style.minHeight = minHeight + 'px';
-        windowElement.style.width = minWidth + 'px';
-        windowElement.style.height = minHeight + 'px';
+        windowElement.style.width = width + 'px';
+        windowElement.style.height = height + 'px';
 
-        // Draggable logic
-        const header = document.getElementById('window-header');
-        let offsetX = 0, offsetY = 0, isDragging = false;
-
-        // Mouse down event to start dragging
-        header.addEventListener('mousedown', function (e) {
-            isDragging = true;
-            offsetX = e.clientX - windowElement.offsetLeft;
-            offsetY = e.clientY - windowElement.offsetTop;
+        // Close button functionality
+        const closeButton = document.querySelector('#window-header button');
+        closeButton.addEventListener('click', function() {
+            // Send message to parent to close this window
+            window.parent.postMessage({ type: 'closeWindow', windowId: window.frameElement.id }, '*');
         });
-
-        // Mouse move event to drag the window
-        document.addEventListener('mousemove', function (e) {
-            if (isDragging) {
-                // Update the window's position based on the mouse movement
-                windowElement.style.left = (e.clientX - offsetX) + 'px';
-                windowElement.style.top = (e.clientY - offsetY) + 'px';
-            }
-        });
-
-        // Mouse up event to stop dragging
-        document.addEventListener('mouseup', function () {
-            isDragging = false;
-        });
-
-        // Remove the dragWindow('firstFrame') call
-        // It is unnecessary and causes the window to jump to the top-left corner
     </script>
 </body>
 

@@ -144,3 +144,7 @@ For other files:
 - Implement additional file types (e.g., PDFs, text files)
 - Allow multiple windows to be opened simultaneously
 - Enhance window management features (e.g., drag-and-drop, resizing)
+- Add more applications to the start menu (e.g., calculator, notepad)
+- Improve file system navigation with breadcrumbs or a path bar
+- Implement a settings menu for customizing the desktop environment
+- Add support for nested directories in the file explorer

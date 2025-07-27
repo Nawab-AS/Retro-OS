@@ -39,16 +39,16 @@ cd retro-OS
 2. Since this is a static web application, you can serve it using any web server of your choice
 > Many web servers utilize 'clean URLs', this however, breaks the embedded window feature and therefore needs to be disabled
 
-For development, I used npm's http-server:
-1) Install http-server globally:
-```bash
-npm install -g http-server
-```
-2) Start the server in the project directory:
-```bash
-http-server
-```
-Then visit `http://localhost:8080` in your browser.
+  For development, I used npm's http-server:
+  1) Install http-server globally:
+  ```bash
+  npm install -g http-server
+  ```
+  2) Start the server in the project directory:
+  ```bash
+  http-server
+  ```
+  Then visit `http://localhost:8080` in your browser.
 
 ## Usage
 
